@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'excon'
+require 'rest-client'
 require 'json'
 
 require 'mandrill/errors'
@@ -14,7 +14,6 @@ module Mandrill
             @host = 'https://mandrillapp.com'
             @path = '/api/1.0/'
 
-            @session = Excon.new @host
             @debug = debug
 
             if not apikey
@@ -32,9 +31,8 @@ module Mandrill
         def call(url, params={})
             params[:key] = @apikey
             params = JSON.generate(params)
-            r = @session.post(:path => "#{@path}#{url}.json", :headers => {'Content-Type' => 'application/json'}, :body => params)
-            
-            cast_error(r.body) if r.status != 200
+            r = RestClient.post("#{host}#{@path}#{url}.json", params, {content_type: :json, accept: :json})
+            cast_error(r.body) if r.code != 200
             return JSON.parse(r.body)
         end
 
